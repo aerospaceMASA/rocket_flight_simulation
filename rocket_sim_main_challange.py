@@ -37,11 +37,11 @@ class RocketSpecs:
 
     # 比推力 [sec]
     specific_thrust = np.zeros(STAGE_NUM + 1)
-    specific_thrust[0] = 220.0 * 2            # 補助ブースタ
-    specific_thrust[1] = 515.0                  # 1段
-    specific_thrust[2] = 242.9 * 0.7                   # 2段
-    specific_thrust[3] = 249.3 * 0.7                   # 3段
-    specific_thrust[4] = 254.0 * 0.7                  # 4段
+    specific_thrust[0] = 220.0 * 2                # 補助ブースタ
+    specific_thrust[1] = 515.0                    # 1段
+    specific_thrust[2] = 242.9 * 0.7              # 2段
+    specific_thrust[3] = 249.3 * 0.7              # 3段
+    specific_thrust[4] = 254.0 * 0.7              # 4段
 
     # 点火イベント [sec]
     ignition_time = np.zeros(STAGE_NUM + 1)
