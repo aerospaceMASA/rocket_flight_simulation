@@ -11,60 +11,80 @@ import matplotlib.pyplot as plt
 import math
 import numpy as np
 
-DEBUG = False
-ANALYSIS_TIME = 30000
+# デバッグモードとシミュレーションモードの切り替え
+DEBUG = True
+# 保存するグラフの名前
 FILE_NAME = "L-4-S-5_flight_sim"
+
+DEBUG_TIME = 520            # デバッグ時の解析時間
+ANALYSIS_TIME = 20000       # シミュレーションの解析時間
+
+if DEBUG is True:
+    ANALYSIS_TIME = DEBUG_TIME
 
 
 class RocketSpecs:
+    """
+        ロケットの諸元を定義するクラス
+        配列は
+            0: ブースタ
+            1: 1段目
+            2: 2段目
+            3: 3段目
+            4: 4段4段目
+        を表す．
+    """
+
     STAGE_NUM = 4
 
     # 機体質量 [kg]
+    # 自分の段より上段を含む
     mass = np.zeros(STAGE_NUM + 1)
-    mass[0] = 1005.0 * 2                          # 補助ブースタ
-    mass[1] = 9399.0                              # 1段
-    mass[2] = 3417.6                              # 2段
-    mass[3] = 943.1                               # 3段
-    mass[4] = 111.0                               # 4段
+    mass[0] = 9399.0
+    mass[1] = mass[0] - 1005.0 * 2
+    mass[2] = 3417.6
+    mass[3] = 943.1
+    mass[4] = 111.0
 
     # 燃料質量 [kg]
     fuel = np.zeros(STAGE_NUM + 1)
-    fuel[0] = 624.0 * 2                           # 補助ブースタ
-    fuel[1] = 3887.0                              # 1段
-    fuel[2] = 1845.0                              # 2段
-    fuel[3] = 547.5                               # 3段
-    fuel[4] = 87.95                               # 4段
+    fuel[0] = 624.0 * 2
+    fuel[1] = 3887.0
+    fuel[2] = 1845.0
+    fuel[3] = 547.5
+    fuel[4] = 87.95
 
     # 比推力 [sec]
+    # 損失を考慮して8割としている
     specific_thrust = np.zeros(STAGE_NUM + 1)
-    specific_thrust[0] = 220.0 * 2                # 補助ブースタ
-    specific_thrust[1] = 515.0                    # 1段
-    specific_thrust[2] = 242.9 * 0.7              # 2段
-    specific_thrust[3] = 249.3 * 0.7              # 3段
-    specific_thrust[4] = 254.0 * 0.7              # 4段
+    specific_thrust[0] = 220.0 * 2 * 0.8
+    specific_thrust[1] = 515.0 * 0.8
+    specific_thrust[2] = 242.9 * 0.8
+    specific_thrust[3] = 249.3 * 0.8
+    specific_thrust[4] = 254.0 * 0.8
 
     # 点火イベント [sec]
     ignition_time = np.zeros(STAGE_NUM + 1)
-    ignition_time[0] = 0                          # 補助ブースタ
-    ignition_time[1] = 0                          # 1段
-    ignition_time[2] = 37.0                       # 2段
-    ignition_time[3] = 103.0                      # 3段
-    ignition_time[4] = 477.0                      # 4段
+    ignition_time[0] = 0
+    ignition_time[1] = 0
+    ignition_time[2] = 37.0
+    ignition_time[3] = 103.0
+    ignition_time[4] = 477.0
 
     # 燃焼終了イベント [sec]
     burn_out_time = np.zeros(STAGE_NUM + 1)
-    burn_out_time[0] = 7.4                        # 補助ブースタ
-    burn_out_time[1] = 29.0                       # 1段
-    burn_out_time[2] = 75.4                       # 2段
-    burn_out_time[3] = 130.0                      # 3段
-    burn_out_time[4] = 508.5                      # 4段
+    burn_out_time[0] = 7.4
+    burn_out_time[1] = 29.0
+    burn_out_time[2] = 75.4
+    burn_out_time[3] = 130.0
+    burn_out_time[4] = 508.5
 
     # 分離イベント [sec]
     separation_time = np.zeros(STAGE_NUM + 1)
-    separation_time[0] = 8.0                      # 補助ブースタ
-    separation_time[1] = 32.0                     # 1段
-    separation_time[2] = 100.0                    # 2段
-    separation_time[3] = 150.0                    # 3段
+    separation_time[0] = 8.0
+    separation_time[1] = 32.0
+    separation_time[2] = 100.0
+    separation_time[3] = 150.0
 
     # 燃焼時間 [sec]
     burn_period = np.zeros(STAGE_NUM + 1)
@@ -87,25 +107,27 @@ class RocketSpecs:
         pass
 
 
+class LaunchCond:
+    # 射角 [rad]
+    launch_angle = math.radians(64)
+    # 射点緯度 [rad]
+    launch_site_lat = math.radians(90)
+
+
 class RocketSimulation:
     def __init__(self):
-        ###################
-        # 物理定数
-        ###################
         # 地球半径 [km]
         self.EARTH_RADIUS = 6378
         # 地心重力定数 [km^3/s^2]
         self.mu = 3.986e5
 
-        ###################
-        # 解析条件
-        ###################
+        lc = LaunchCond()
         # 解析時間 [s]
         self.analysis_time = ANALYSIS_TIME
         # 射角 [rad]
-        self.launch_angle = math.radians(80)
+        self.launch_angle = lc.launch_angle
         # 射点緯度 [rad]
-        self.launch_site_lat = math.radians(90)
+        self.launch_site_lat = lc.launch_site_lat
 
         if DEBUG is True:
             # 出力用バッファー
@@ -155,16 +177,20 @@ class RocketSimulation:
     def __stage(self, t, spec):
         if t > spec.separation_time[self.stage]:
             self.stage += 1
-        if self.stage >= 4:
-            self.stage = 4
+        if self.stage >= spec.STAGE_NUM:
+            self.stage = spec.STAGE_NUM
 
     def __thrust(self, t, spec):
+        # ブースタの再現
         if self.stage == 0:
             thrust = spec.thrust[0] + spec.thrust[1]
             if t > spec.burn_out_time[0]:
                 thrust = spec.thrust[1]
         elif t < spec.burn_out_time[self.stage]:
-            thrust = spec.thrust[self.stage]
+            if t > spec.ignition_time[self.stage]:
+                thrust = spec.thrust[self.stage]
+            else:
+                thrust = 0
         else:
             thrust = 0
 
@@ -175,11 +201,15 @@ class RocketSimulation:
         return thrust
 
     def __mass(self, t, spec):
-        mass = np.sum(spec.mass[self.stage:spec.STAGE_NUM+1])
-        if t < spec.burn_out_time[spec.STAGE_NUM]:
-            mass -= spec.mass_flow_rate[self.stage] * t -\
-                spec.mass_flow_rate[self.stage] *\
-                spec.ignition_time[self.stage]
+        mass = spec.mass[self.stage]
+
+        if t < spec.burn_out_time[self.stage]:
+            if t > spec.ignition_time[self.stage]:
+                mass -= spec.mass_flow_rate[self.stage] * t -\
+                    spec.mass_flow_rate[self.stage] *\
+                    spec.ignition_time[self.stage]
+        else:
+            mass -= spec.fuel[self.stage]
 
         if DEBUG is True:
             self.mass_buf.append(mass)
