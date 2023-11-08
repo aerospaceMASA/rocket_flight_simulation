@@ -17,7 +17,7 @@ DEBUG = True
 FILE_NAME = "L-4-S-5_flight_sim"
 
 DEBUG_TIME = 520            # デバッグ時の解析時間
-ANALYSIS_TIME = 20000       # シミュレーションの解析時間
+ANALYSIS_TIME = 100000       # シミュレーションの解析時間
 
 if DEBUG is True:
     ANALYSIS_TIME = DEBUG_TIME
@@ -41,27 +41,26 @@ class RocketSpecs:
     # 自分の段より上段を含む
     mass = np.zeros(STAGE_NUM + 1)
     mass[0] = 9399.0
-    mass[1] = mass[0] - 1005.0 * 2
+    mass[1] = 8394.0
     mass[2] = 3417.6
     mass[3] = 943.1
     mass[4] = 111.0
 
     # 燃料質量 [kg]
     fuel = np.zeros(STAGE_NUM + 1)
-    fuel[0] = 624.0 * 2
+    fuel[0] = 624.0
     fuel[1] = 3887.0
     fuel[2] = 1845.0
     fuel[3] = 547.5
     fuel[4] = 87.95
 
     # 比推力 [sec]
-    # 損失を考慮して8割としている
     specific_thrust = np.zeros(STAGE_NUM + 1)
-    specific_thrust[0] = 220.0 * 2 * 0.8
-    specific_thrust[1] = 515.0 * 0.8
-    specific_thrust[2] = 242.9 * 0.8
-    specific_thrust[3] = 249.3 * 0.8
-    specific_thrust[4] = 254.0 * 0.8
+    specific_thrust[0] = 220.0 * 1
+    specific_thrust[1] = 515.0 * 1
+    specific_thrust[2] = 242.9 * 1
+    specific_thrust[3] = 249.3 * 1
+    specific_thrust[4] = 254.0 * 1
 
     # 点火イベント [sec]
     ignition_time = np.zeros(STAGE_NUM + 1)
@@ -109,7 +108,7 @@ class RocketSpecs:
 
 class LaunchCond:
     # 射角 [rad]
-    launch_angle = math.radians(64)
+    launch_angle = math.radians(70)
     # 射点緯度 [rad]
     launch_site_lat = math.radians(90)
 
